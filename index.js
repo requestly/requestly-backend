@@ -70,14 +70,16 @@ const sendLogToFirebase = (req, response) => {
  * @returns Promise that resolve to response to be returned 
  */
 const getResponseFromHarRequest = (harObject) => {
-  let requestOptions  = getAxiosRequestOptions(harObject.log.entries[0].request)
-
+  let harRequest = harObject.log.entries[0].request
+  let requestOptions  = getAxiosRequestOptions(harRequest)
+  console.log(requestOptions);
   requestOptions = applyRulesToRequest(requestOptions)
 
   return new Promise((resolve, reject) => {
     axios(requestOptions)
     .then(res => {
-      let response = applyRulesToResponse(res)
+      let response = res.data;
+      response = applyRulesToResponse(response)
       sendLogToFirebase(requestOptions, response)
       resolve(response)
     })
@@ -91,6 +93,7 @@ app.post('/', (req, res) => {
   let harObject = req.body;
 
   getResponseFromHarRequest(harObject).then((response) => {
+    console.log("returning", response)
     res.send(response)
   })
 })
