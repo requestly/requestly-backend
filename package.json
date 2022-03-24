@@ -1,0 +1,25 @@
+{
+  "name": "rq-interceptor-backend",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/requestly/rq-interceptor-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/requestly/rq-interceptor-backend/issues"
+  },
+  "homepage": "https://github.com/requestly/rq-interceptor-backend#readme",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "express": "^4.17.3",
+    "httpsnippet": "^2.0.0"
+  }
+}
