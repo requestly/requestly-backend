@@ -1,0 +1,37 @@
+{
+  "name": "rq-interceptor-backend",
+  "version": "0.0.1",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "ts-node src/index.ts",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/requestly/rq-interceptor-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/requestly/rq-interceptor-backend/issues"
+  },
+  "homepage": "https://github.com/requestly/rq-interceptor-backend#readme",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "express": "^4.17.3",
+    "firebase-admin": "^10.0.2",
+    "https-proxy-agent": "^5.0.0",
+    "redis": "^4.0.6",
+    "rq-proxy": "github:requestly/rq-proxy.git",
+    "unique-names-generator": "^4.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.25",
+    "nodemon": "^2.0.15",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.3"
+  }
+}

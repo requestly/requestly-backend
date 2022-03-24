@@ -1,0 +1,16 @@
+[Unit]
+Description=My Node Server
+After=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/node /home/ubuntu/rq-interceptor-backend/dist/index.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=rq-backend-server
+User=ubuntu
+EnvironmentFile=/home/ubuntu/rq-interceptor-backend/app.env
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,6 @@
+node_modules
+dist
+src/configs/secrets/*ServiceAccountKey.json
+src/configs/secrets/beta.js
+src/configs/secrets/local.js
+src/configs/secrets/prod.js
