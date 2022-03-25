@@ -1,19 +1,18 @@
-// import express from "express"
-const { default: axios } = require('axios')
 const express = require('express')
-// import HTTPSnippet from "httpsnippet";
-const HTTPSnippet = require("httpsnippet")
-const PORT = 6969
+const { default: axios } = require('axios')
+const {AxiosHarTracker} = require("axios-har-tracker")
 
+/* Create App */
+const PORT = 6969
 const app = express()
 app.use(express.json())
+const axiosTracker = new AxiosHarTracker(axios); 
 
-
+/* Utils */
 const getAxiosRequestOptions = (harRequestObject) => {
-  console.log('Got request:', harRequestObject);
+  // console.log('Got request:', harRequestObject);
 
   let headersArray = harRequestObject.headers
-
   let headersObjects = {}
 
   for(let header of headersArray) {
@@ -37,50 +36,48 @@ const getAxiosRequestOptions = (harRequestObject) => {
     data: body
   }
 }
-// TODO: @nsr add rule fetcher
 
-const applyRulesToRequest = (requestOptions) => {
-  
-  // TODO: @nsr add action processor
-  
-  return requestOptions
-}
+const sendLogToFirebase = () => {
+  let axiosHar = axiosTracker.getGeneratedHar();
+  console.log("Sending har to firbase", axiosHar)
 
-const applyRulesToResponse = (response) => {
-  
-  // TODO: @nsr add action processor
-  
-  return response
-}
+  // It is obvious, but this needs to happen after the initial axios 
+  // else the axiosTracker will record this request as well
+  axios({ // beta
+    method: "post",
+    url : "https://us-central1-requestly-dev.cloudfunctions.net/addSdkLog",
+    headers: {
+      "Content-Type": "application/json",
+      "device_id" : "Test-DeviceID",
+      "sdk_id" : "Test-SDKID",
+    },
+    data: {data: JSON.stringify(axiosHar)}
+  })
 
-const sendLogToFirebase = (req, response) => {
-  // TODO: @nsr
-  /**
-   * - Add firebase sdk
-   * - create har and send (take referrence from existing logger)
-   */
+  // // Using firebaseSDK
+  // const functions = getFunctions();
+  // const addSdkLog = httpsCallable(functions, "addSdkLog");
+  // addSdkLog(axiosHar)
+  // .then(console.log)
+  // .catch(console.error)
 }
 
 /**
- * Apply rules at both on Request
- * Sends request using axios
- * Applys rules on response
- * Sends request and response as logs to firebase
+ * performs request using axios
+ * Sends request and response as har to firebase
  * @param {*} harObject Har recieved in post request body
  * @returns Promise that resolve to response to be returned 
  */
 const getResponseFromHarRequest = (harObject) => {
   let harRequest = harObject.log.entries[0].request
   let requestOptions  = getAxiosRequestOptions(harRequest)
-  console.log(requestOptions);
-  requestOptions = applyRulesToRequest(requestOptions)
+  // console.log(requestOptions);
 
   return new Promise((resolve, reject) => {
     axios(requestOptions)
     .then(res => {
       let response = res.data;
-      response = applyRulesToResponse(response)
-      sendLogToFirebase(requestOptions, response)
+      sendLogToFirebase(harObject, requestOptions, response)
       resolve(response)
     })
     .catch(err => {
@@ -93,7 +90,7 @@ app.post('/', (req, res) => {
   let harObject = req.body;
 
   getResponseFromHarRequest(harObject).then((response) => {
-    console.log("returning", response)
+    // console.log("returning", response)
     res.send(response)
   })
 })
