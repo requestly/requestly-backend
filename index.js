@@ -2,14 +2,25 @@ const express = require('express')
 const { default: axios } = require('axios')
 const {AxiosHarTracker} = require("axios-har-tracker")
 
-/* Create App */
+/** CONSTANTS */
 const PORT = 6969
+// RQ HEADERS 
+// @sahil, using "-" instead of "_" will require rewrite in both firebase function and sdk
+// const deviceIdHeader = "device-id"
+// const sdkIdHeader = "sdk-id"
+const deviceIdHeader = "device_id"
+const sdkIdHeader = "sdk_id"
+
+// session state // I agree, not the best way
+let deviceId = "", sdkId = ""; 
+
+/* Create App */
 const app = express()
 app.use(express.json())
 const axiosTracker = new AxiosHarTracker(axios); 
 
 /* Utils */
-const getAxiosRequestOptions = (harRequestObject) => {
+function getAxiosRequestOptionsFromHar (harRequestObject) {
   // console.log('Got request:', harRequestObject);
 
   let headersArray = harRequestObject.headers
@@ -24,34 +35,88 @@ const getAxiosRequestOptions = (harRequestObject) => {
   if(data && data.mimeType == "application/json")  {
     try {
       body = JSON.parse(data)
-    } catch  {
-      /** nothing */
+    } catch(err) {
+      console.error("Error in try-catch", err)
     }
   }
 
-  return {
+  const requestOptions = {
     url: harRequestObject.url,
     method: harRequestObject.method.toLowerCase(),
     headers: headersObjects,
     data: body
   }
+  return requestOptions
 }
 
-const sendLogToFirebase = () => {
-  let axiosHar = axiosTracker.getGeneratedHar();
-  console.log("Sending har to firbase", axiosHar)
+function getHarResponseAttributeFromAxiosResponse (axiosResponse) {
+  // headers
+  let headersArray = []
+  for(let name in axiosResponse.headers) {
+    let _headerObject = {
+      name,
+      value: axiosResponse.headers[name],
+      comment: ""
+    }
+    headersArray.push(_headerObject)
+  }
+  
+  // content
+  let responseAsText = ""
+  if(
+    axiosResponse.headers['content-type'].includes("application/json") &&
+    typeof axiosResponse.data == "object"
+  ) {
+    try {
+      responseAsText = JSON.stringify(axiosResponse.data)
+    } catch (err) {
+      console.error("Error in try-catch", err)
+    }
+  } else if (typeof axiosResponse.data != "string"){
+    console.log("Error: Fetched response that is neither a string nor a json", axiosResponse.data)
+  } else {
+    responseAsText = axiosResponse.data
+  }
 
-  // It is obvious, but this needs to happen after the initial axios 
-  // else the axiosTracker will record this request as well
-  axios({ // beta
+  let contentObject = {
+    mimeType: axiosResponse.headers['content-type'] || "",
+    text: responseAsText,
+    bodySize: responseAsText.length
+    // size: ?? // size of uncompressed data
+  }
+
+  return {
+    status: axiosResponse.status,
+    statusText: axiosResponse.statusText,
+    headers: headersArray,
+    content: contentObject
+  }
+}
+
+async function sendLogToFirebase (harObject, requestOptions, response){
+  let finalHarObject = harObject
+  let harEntry = finalHarObject.log?.entries[0] // ASSUMES SINGLE ENTRY IN HAR
+  // update finalHar response object
+  if(harEntry) {
+    harEntry.response = getHarResponseAttributeFromAxiosResponse(response)
+  }
+
+  let headers = {}
+  headers["Content-Type"] = "application/json"
+  headers[deviceIdHeader] = deviceId
+  headers[sdkIdHeader] = sdkId
+
+  return axios({
     method: "post",
-    url : "https://us-central1-requestly-dev.cloudfunctions.net/addSdkLog",
-    headers: {
-      "Content-Type": "application/json",
-      "device_id" : "Test-DeviceID",
-      "sdk_id" : "Test-SDKID",
-    },
-    data: {data: JSON.stringify(axiosHar)}
+    // url : "https://us-central1-project-7820168409702389920.cloudfunctions.net/", // prod
+    url : "https://us-central1-requestly-dev.cloudfunctions.net/addSdkLog", // beta
+    headers,
+    data: {data: JSON.stringify(finalHarObject)}
+  }).then(() => {
+    console.log("Successfully sent data to firebase, got response");
+  }).catch(error => {
+    // console.log("Error when sending log to firebase", error);
+    console.log(`Could not send to firebase, device - ${deviceId}, sdk - ${sdkId}`, error.response.status);
   })
 
   // // Using firebaseSDK
@@ -62,37 +127,66 @@ const sendLogToFirebase = () => {
   // .catch(console.error)
 }
 
+const errRequestWithoutRQHeaders = new Error("Device ID or SDK ID not Passed")
 /**
  * performs request using axios
  * Sends request and response as har to firebase
  * @param {*} harObject Har recieved in post request body
  * @returns Promise that resolve to response to be returned 
  */
-const getResponseFromHarRequest = (harObject) => {
-  let harRequest = harObject.log.entries[0].request
-  let requestOptions  = getAxiosRequestOptions(harRequest)
+function getResponseFromHarRequest(harObject) {
+  let harRequest = harObject.log.entries[0].request // ASSUMES SINGLE ENTRY IN HAR
+  let requestOptions  = getAxiosRequestOptionsFromHar(harRequest)
   // console.log(requestOptions);
 
   return new Promise((resolve, reject) => {
     axios(requestOptions)
-    .then(res => {
-      let response = res.data;
-      sendLogToFirebase(harObject, requestOptions, response)
+    .then(async (response) => {
+      await sendLogToFirebase(harObject, requestOptions, response)
       resolve(response)
     })
-    .catch(err => {
+    .catch(async (error) => {
       console.log("Axios promise could not be resolved");
-      reject(err)
+      if (error.response) {
+        await sendLogToFirebase(harObject, requestOptions, error.response)
+        resolve(error.response)
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.log("No response recieved for request",error.request);
+        reject(error)
+      } else {
+        console.log('Unexpected Error', error.message);
+        reject(error)
+      }
     })
-})
+  })
 }
-app.post('/', (req, res) => {
+app.post('/proxyRequest', async (req, res) => {
   let harObject = req.body;
 
-  getResponseFromHarRequest(harObject).then((response) => {
-    // console.log("returning", response)
-    res.send(response)
-  })
+  if(!(req.headers[sdkIdHeader] && req.headers[deviceIdHeader])) {
+    res.status(400).send(`${sdkIdHeader} and ${deviceIdHeader} headers are must`)
+  } else {
+    sdkId = req.headers[sdkIdHeader]
+    deviceId = req.headers[deviceIdHeader]
+    
+    await getResponseFromHarRequest(harObject).then((response) => {
+      // console.log("returning", response)
+      res.status(response.status)
+      res.header(response.headers)
+      res.send(response.data)
+    }).catch(error => {
+      console.error("Unexpected Error - ", error)
+      res.status(500).send(`Hmm, this was an unexpected crash. Please report this issue`)
+    })
+    .finally(() => {
+      // Cleanup after session // I agree, not the best way
+      // console.log("Before cleanup", deviceId, sdkId)
+      deviceId = "", sdkId = "";
+    })
+
+    
+  }
 })
 
 app.listen(PORT, () => {
