@@ -41,6 +41,8 @@ export function getHarResponseAttributeFromAxiosResponse (axiosResponse) {
   // content
   let responseAsText = ""
   if(
+    axiosResponse && axiosResponse.headers &&
+    axiosResponse.headers['content-type'] &&
     axiosResponse.headers['content-type'].includes("application/json") &&
     typeof axiosResponse.data == "object"
   ) {
