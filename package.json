@@ -21,9 +21,9 @@
   "homepage": "https://github.com/requestly/rq-interceptor-backend#readme",
   "dependencies": {
     "axios": "^0.26.1",
-    "axios-har-tracker": "^0.3.0",
     "express": "^4.17.3",
-    "firebase": "^9.6.9"
+    "firebase": "^9.6.9",
+    "rq-proxy": "git+https://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:x-oauth-basic@github.com/requestly/rq-proxy.git"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
