@@ -4,7 +4,11 @@ import {
   getAxiosRequestOptionsFromHar, 
   getHarResponseAttributeFromAxiosResponse 
 } from "./harConverter.js";
-import { DEVICE_ID_HEADER, SDK_ID_HEADER } from "../constants.js";;
+import { DEVICE_ID_HEADER, SDK_ID_HEADER } from "../constants/index.js";
+import { axiosDefaultConfig } from "../configs/axios-config.js";
+
+// axios = axios.create(axiosDefaultConfig)
+
 /**
  * performs request using axios
  * Sends request and response as har to firebase
@@ -12,13 +16,16 @@ import { DEVICE_ID_HEADER, SDK_ID_HEADER } from "../constants.js";;
  * @returns Promise that resolve to response to be returned 
  */
 export function getResponseFromHarRequest(harObject, deviceId, sdkId) {
+  const _axios = axios.create(axiosDefaultConfig)
   let harRequest = harObject.log.entries[0].request // ASSUMES SINGLE ENTRY IN HAR
   let requestOptions  = getAxiosRequestOptionsFromHar(harRequest)
   
   return new Promise((resolve, reject) => {
-    axios(requestOptions)
+    _axios(requestOptions)
     .then(async (response) => {
     await sendLogToFirebase(harObject, response, deviceId, sdkId)
+    console.log(response);
+    delete response.headers["transfer-encoding"]
     resolve(response)
     })
     .catch(async (error) => {
@@ -53,8 +60,8 @@ async function sendLogToFirebase (originalHarObject, response, deviceId, sdkId){
 
   return axios({
     method: "post",
-    // url : "https://us-central1-project-7820168409702389920.cloudfunctions.net/", // prod
-    url : "https://us-central1-requestly-dev.cloudfunctions.net/addSdkLog", // beta
+    url : "https://us-central1-project-7820168409702389920.cloudfunctions.net/addSdkLog", // prod
+    // url : "https://us-central1-requestly-dev.cloudfunctions.net/addSdkLog", // beta
     headers,
     data: {data: JSON.stringify(finalHarObject)}
   }).then(() => {

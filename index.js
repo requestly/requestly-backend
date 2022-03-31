@@ -1,7 +1,9 @@
 import express from "express";
 
-import { PORT, DEVICE_ID_HEADER, SDK_ID_HEADER } from "./constants.js";
+import { PORT, DEVICE_ID_HEADER, SDK_ID_HEADER } from "./constants/index.js";
 import { getResponseFromHarRequest } from "./utils/passThrough.js";
+
+import * as ProxyStartup from "./startup/proxy.js";
 
 /* Create App */
 const app = express()
