@@ -1,16 +1,28 @@
+import axios from "axios";
+import { DEVICE_ID_HEADER_KEY, SDK_ID_HEADER_KEY, FUNC_GET_DEVICE_RULES } from "../constants/index.js";
+import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 import IRulesDataSource from "rq-proxy/dist/components/interfaces/rules-data-source";
-import {getFunctions, httpsCallable} from "firebase/functions";
+
+function getRulesForDevice(sdkId: string, deviceId: string) {
+    let headers = {}
+    headers["Content-Type"] = "application/json"
+    headers[DEVICE_ID_HEADER_KEY] = deviceId
+    headers[SDK_ID_HEADER_KEY] = sdkId
+    return axios({
+        method: "post",
+        url : `${RQ_FIREBASE_BASE_URL}/${FUNC_GET_DEVICE_RULES}`, // emulator
+        headers
+    }).then(res => {
+        return res.data
+    }).catch(error => {
+    console.log(`Could not send to firebase, device - ${deviceId}, sdk - ${sdkId}`, error.response.status);
+    })
+}
 
 class RulesDataSource implements IRulesDataSource {
     static getRuleRecords = async (sdkId: string, deviceId: string) : Promise<[Object, RulesDataSource.RuleFetchStatus]> => {
         // TODO: Add caching layer
-        const functions = getFunctions()
-        const getRulesForDevice = httpsCallable(functions, "getRulesForDevice")
-        return await getRulesForDevice({
-            sdkId,
-            deviceId
-        }).then((res) : [Object, RulesDataSource.RuleFetchStatus] =>  {
-        let response = res.data
+        return await getRulesForDevice(sdkId, deviceId).then((response) : [Object, RulesDataSource.RuleFetchStatus] =>  {
         // @ts-ignore
         if(response.status) {
             // @ts-ignore
@@ -32,10 +44,9 @@ class RulesDataSource implements IRulesDataSource {
         })
     }
 
-    // TODO: @nsr replace headers with constants after migrating thise to rq-interceptor-backend
     getRules = async (requestHeaders) => {
         // TODO: state based error handling using the returned status
-        const [records, status] = await RulesDataSource.getRuleRecords(requestHeaders.sdk_id, requestHeaders.device_id)
+        const [records, status] = await RulesDataSource.getRuleRecords(requestHeaders[SDK_ID_HEADER_KEY], requestHeaders[DEVICE_ID_HEADER_KEY])
         // getRulesFromRecords
         let rules = []
         for(let recordId in records) {
@@ -47,7 +58,7 @@ class RulesDataSource implements IRulesDataSource {
         return rules
     }
     getGroups = async (requestHeaders) => {
-        const [records, status] = await RulesDataSource.getRuleRecords(requestHeaders.sdk_id, requestHeaders.device_id)
+        const [records, status] = await RulesDataSource.getRuleRecords(requestHeaders[SDK_ID_HEADER_KEY], requestHeaders[DEVICE_ID_HEADER_KEY])
         // getGroupsFromRecords
         let groups = []
         for(let recordId in records) {
@@ -65,13 +76,6 @@ namespace RulesDataSource {
         sdkId: string,
         deviceId: string,
     }
-
-    // export interface FirebaseResponse {
-    //     status: boolean,
-    //     err?: string,
-    //     message?: string,
-    //     records?: object
-    // }
 
     export enum RuleFetchStatus {
         Fetching,
