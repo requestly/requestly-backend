@@ -2,11 +2,11 @@ import axios from "axios";
 import { DEVICE_ID_HEADER_KEY, FUNC_GET_DEVICE_RULES, SDK_ID_HEADER_KEY } from "../constants/index.js";
 import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 
-function getRulesForDevice(sdkId, deviceId) {
+async function getRulesForDevice(sdkId, deviceId) {
     let headers = {}
     headers["Content-Type"] = "application/json"
-    headers[DEVICE_ID_HEADER_KEY] = deviceId
-    headers[SDK_ID_HEADER_KEY] = sdkId
+    headers['device_id'] = deviceId
+    headers['sdk_id'] = sdkId
     return axios({
         method: "post",
         url : `${RQ_FIREBASE_BASE_URL}/${FUNC_GET_DEVICE_RULES}`,
