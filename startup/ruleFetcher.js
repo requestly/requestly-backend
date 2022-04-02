@@ -44,7 +44,6 @@ class RulesDataSource {
         })
     }
 
-    // TODO: @nsr replace headers with constants after migrating thise to rq-interceptor-backend
     getRules = async (requestHeaders) => {
         // TODO: state based error handling using the returned status
         const [records, status] = await RulesDataSource.getRuleRecords(requestHeaders[SDK_ID_HEADER_KEY], requestHeaders[DEVICE_ID_HEADER_KEY])
