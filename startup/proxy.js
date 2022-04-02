@@ -3,7 +3,7 @@ import  { RQProxyProvider } from "rq-proxy";
 // import  { ProxyConfig, } from "rq-proxy/dist/types";
 // import ILoggerService from "rq-proxy/dist/components/interfaces/logger-service";
 import { CERT_PATH, PROXY_PORT, ROOT_CERT_PATH } from "../constants/index.js";
-import RulesDataSource from "./ruleFetcher.js";
+// import RulesDataSource from "./ruleFetcher.js";
 import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 
 
