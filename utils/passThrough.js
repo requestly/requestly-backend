@@ -6,6 +6,7 @@ import {
 } from "./harConverter.js";
 import { DEVICE_ID_HEADER, SDK_ID_HEADER } from "../constants/index.js";
 import { axiosDefaultConfig } from "../configs/axios-config.js";
+import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 
 // axios = axios.create(axiosDefaultConfig)
 
@@ -23,15 +24,14 @@ export function getResponseFromHarRequest(harObject, deviceId, sdkId) {
   return new Promise((resolve, reject) => {
     _axios(requestOptions)
     .then(async (response) => {
-    await sendLogToFirebase(harObject, response, deviceId, sdkId)
-    console.log(response);
+    // await sendLogToFirebase(harObject, response, deviceId, sdkId)
     delete response.headers["transfer-encoding"]
     resolve(response)
     })
     .catch(async (error) => {
     console.log("Axios promise could not be resolved");
     if (error.response) {
-      await sendLogToFirebase(harObject, error.response, deviceId, sdkId)
+      // await sendLogToFirebase(harObject, error.response, deviceId, sdkId)
       resolve(error.response)
     } else if (error.request) {
       // The request was made but no response was received
@@ -60,8 +60,7 @@ async function sendLogToFirebase (originalHarObject, response, deviceId, sdkId){
 
   return axios({
     method: "post",
-    url : "https://us-central1-project-7820168409702389920.cloudfunctions.net/addSdkLog", // prod
-    // url : "https://us-central1-requestly-dev.cloudfunctions.net/addSdkLog", // beta
+    url : `${RQ_FIREBASE_BASE_URL}/addSdkLog`,
     headers,
     data: {data: JSON.stringify(finalHarObject)}
   }).then(() => {
@@ -69,11 +68,4 @@ async function sendLogToFirebase (originalHarObject, response, deviceId, sdkId){
   }).catch(error => {
     console.log(`Could not send to firebase, device - ${deviceId}, sdk - ${sdkId}`, error.response.status);
   })
-
-  // // Using firebaseSDK
-  // const functions = getFunctions();
-  // const addSdkLog = httpsCallable(functions, "addSdkLog");
-  // addSdkLog(axiosHar)
-  // .then(console.log)
-  // .catch(console.error)
 }
