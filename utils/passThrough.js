@@ -4,7 +4,7 @@ import {
   getAxiosRequestOptionsFromHar, 
   getHarResponseAttributeFromAxiosResponse 
 } from "./harConverter.js";
-import { DEVICE_ID_HEADER_KEY, SDK_ID_HEADER_KEY } from "../constants/index.js";
+import { DEVICE_ID_HEADER_KEY, SDK_ID_HEADER_KEY, FUNC_ADD_SDK_LOGS } from "../constants/index.js";
 import { axiosDefaultConfig } from "../configs/axios-config.js";
 import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 
@@ -65,7 +65,7 @@ async function sendLogToFirebase (originalHarObject, response, deviceId, sdkId){
 
   return axios({
     method: "post",
-    url : `${RQ_FIREBASE_BASE_URL}/addSdkLog`,
+    url : `${RQ_FIREBASE_BASE_URL}/${FUNC_ADD_SDK_LOGS}`,
     headers,
     data: {data: JSON.stringify(finalHarObject)}
   }).then(() => {
