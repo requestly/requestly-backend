@@ -1,6 +1,6 @@
 import express from "express";
 
-import { PORT, DEVICE_ID_HEADER, SDK_ID_HEADER } from "./constants/index.js";
+import { PORT, SDK_ID_HEADER_KEY, DEVICE_ID_HEADER_KEY } from "./constants/index.js";
 import { getResponseFromHarRequest } from "./utils/passThrough.js";
 
 import * as ProxyStartup from "./startup/proxy.js";
@@ -12,11 +12,11 @@ app.use(express.json())
 
 app.post('/proxyRequest', async (req, res) => {
   let harObject = req.body;
-  let sdkId = req.headers[SDK_ID_HEADER]
-  let deviceId = req.headers[DEVICE_ID_HEADER]
+  let sdkId = req.headers[SDK_ID_HEADER_KEY]
+  let deviceId = req.headers[DEVICE_ID_HEADER_KEY]
   
   if(!sdkId || !deviceId) {
-    res.status(400).send(`${SDK_ID_HEADER} and ${DEVICE_ID_HEADER} headers are must`)
+    res.status(400).send(`${SDK_ID_HEADER_KEY} and ${DEVICE_ID_HEADER_KEY} headers are must`)
   } else {
     await getResponseFromHarRequest(harObject, deviceId, sdkId).then((response) => {
       // console.log("returning", response)

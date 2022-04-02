@@ -2,7 +2,7 @@ import axios from "axios";
 import  { RQProxyProvider } from "rq-proxy";
 // import  { ProxyConfig, } from "rq-proxy/dist/types";
 // import ILoggerService from "rq-proxy/dist/components/interfaces/logger-service";
-import { CERT_PATH, PROXY_PORT, ROOT_CERT_PATH } from "../constants/index.js";
+import { CERT_PATH, DEVICE_ID_HEADER_KEY, PROXY_PORT, ROOT_CERT_PATH, SDK_ID_HEADER_KEY } from "../constants/index.js";
 // import RulesDataSource from "./ruleFetcher.js";
 import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 
@@ -79,11 +79,15 @@ class RulesDataSource{
 class LoggerService{
     addLog = (log, requestHeaders) => {
         // console.log(JSON.stringify(log, null, 4));
-        // TODO: Fetch these from device headers
+        // const headers = {
+        //     "device_id": "test_device",
+        //     "sdk_id": "7jcFc1g5j7ozfSXe7lc6",
+        // };
         const headers = {
-            "device_id": "test_device",
-            "sdk_id": "7jcFc1g5j7ozfSXe7lc6",
+            "device_id": requestHeaders[DEVICE_ID_HEADER_KEY],
+            "sdk_id": requestHeaders[SDK_ID_HEADER_KEY],
         };
+
         // TODO: Keeping this as Strong for now to avoid changes in UI
         log.finalHar = JSON.stringify(log.finalHar);
 

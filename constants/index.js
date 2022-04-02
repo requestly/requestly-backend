@@ -4,5 +4,5 @@ export const PROXY_PORT = 8281;
 
 
 export const PORT = 6969
-export const DEVICE_ID_HEADER = "device_id"
-export const SDK_ID_HEADER = "sdk_id"
+export const DEVICE_ID_HEADER_KEY = "rq_device_id"
+export const SDK_ID_HEADER_KEY = "rq_sdk_id"

@@ -4,7 +4,7 @@ import {
   getAxiosRequestOptionsFromHar, 
   getHarResponseAttributeFromAxiosResponse 
 } from "./harConverter.js";
-import { DEVICE_ID_HEADER, SDK_ID_HEADER } from "../constants/index.js";
+import { DEVICE_ID_HEADER_KEY, SDK_ID_HEADER_KEY } from "../constants/index.js";
 import { axiosDefaultConfig } from "../configs/axios-config.js";
 import { RQ_FIREBASE_BASE_URL } from "../configs/secrets.js";
 
@@ -20,6 +20,11 @@ export function getResponseFromHarRequest(harObject, deviceId, sdkId) {
   const _axios = axios.create(axiosDefaultConfig)
   let harRequest = harObject.log.entries[0].request // ASSUMES SINGLE ENTRY IN HAR
   let requestOptions  = getAxiosRequestOptionsFromHar(harRequest)
+
+  // Add device_id and sdk_id header in proxy request
+  requestOptions.headers[DEVICE_ID_HEADER_KEY] = deviceId;
+  requestOptions.headers[SDK_ID_HEADER_KEY] = sdkId;
+  //
   
   return new Promise((resolve, reject) => {
     _axios(requestOptions)
@@ -55,8 +60,8 @@ async function sendLogToFirebase (originalHarObject, response, deviceId, sdkId){
 
   let headers = {}
   headers["Content-Type"] = "application/json"
-  headers[DEVICE_ID_HEADER] = deviceId
-  headers[SDK_ID_HEADER] = sdkId
+  headers[DEVICE_ID_HEADER_KEY] = deviceId
+  headers[SDK_ID_HEADER_KEY] = sdkId
 
   return axios({
     method: "post",
