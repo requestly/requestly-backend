@@ -1,4 +1,4 @@
-export const CERT_PATH = "/Users/sahilgupta/Library/Application\\ Support/Electron/.requestly-certs-temp";
+export const CERT_PATH = process.env.CERT_PATH || "/Users/sahilgupta/Library/Application\\ Support/Electron/.requestly-certs-temp";
 export const ROOT_CERT_PATH = `${CERT_PATH}/certs/ca.pem`;
 export const PROXY_PORT = 8281;
 
