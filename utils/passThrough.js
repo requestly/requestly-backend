@@ -27,7 +27,10 @@ export function getResponseFromHarRequest(harObject, deviceId, sdkId) {
   //
   
   return new Promise((resolve, reject) => {
-    _axios(requestOptions)
+    _axios({
+      ...requestOptions,
+      responseType: "arraybuffer", // Hack to fix image not passing through error. Check if this is working properly with other types of request too.
+    })
     .then(async (response) => {
     // await sendLogToFirebase(harObject, response, deviceId, sdkId)
     delete response.headers["transfer-encoding"]

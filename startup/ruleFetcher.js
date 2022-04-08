@@ -35,6 +35,8 @@ class RulesDataSource {
                     
                 case "Invalid DeviceId":
                     return [{}, "ERROR"]
+                default:
+                    return [{}, "ERROR"]
                 }
                     
             }
@@ -56,8 +58,8 @@ class RulesDataSource {
             }
         }
 
-        console.log("Fetched Rules");
-        console.log(JSON.stringify(rules, null, 4));
+        // console.log("Fetched Rules");
+        // console.log(JSON.stringify(rules, null, 4));
         return rules
     }
     getGroups = async (requestHeaders) => {
