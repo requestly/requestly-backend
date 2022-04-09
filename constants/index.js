@@ -10,3 +10,5 @@ export const SDK_ID_HEADER_KEY = "rq_sdk_id"
 export const FUNC_ADD_SDK_LOGS = "addSdkLog"
 export const FUNC_GET_DEVICE_RULES = "getRulesForDevice"
 
+
+export const CACHE_EXPIRY = 60  // In Seconds
