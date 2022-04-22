@@ -24,7 +24,15 @@ export function getResponseFromHarRequest(harObject, deviceId, sdkId) {
   // Add device_id and sdk_id header in proxy request
   requestOptions.headers[DEVICE_ID_HEADER_KEY] = deviceId;
   requestOptions.headers[SDK_ID_HEADER_KEY] = sdkId;
-  //
+  
+  /* SECURITY FILTER */
+  // AWS METADATA STATIC ENDPOINT
+  if (
+    requestOptions.url.includes("169.254.169.254") || 
+    requestOptions.url.includes("[fd00:ec2::254]")
+  ) {
+    return customResponseForMaliciousRequest(requestOptions)
+  }
   
   return new Promise((resolve, reject) => {
     _axios({
@@ -76,5 +84,15 @@ async function sendLogToFirebase (originalHarObject, response, deviceId, sdkId){
     console.log("Successfully sent data to firebase, got response");
   }).catch(error => {
     console.log(`Could not send to firebase, device - ${deviceId}, sdk - ${sdkId}`, error.response.status);
+  })
+}
+
+function customResponseForMaliciousRequest(requestOptions) {
+  return new Promise((resolve, reject) => {
+    resolve({
+      status: 403,
+      headers: {},
+      data: "The request has been blocked"
+    })
   })
 }
