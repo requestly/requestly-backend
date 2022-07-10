@@ -1,6 +1,8 @@
-node_modules
-dist
-src/configs/secrets/*ServiceAccountKey.json
-src/configs/secrets/beta.js
-src/configs/secrets/local.js
-src/configs/secrets/prod.js
+app/node_modules
+app/dist
+app/src/configs/secrets/*ServiceAccountKey.json
+app/src/configs/secrets/beta.js
+app/src/configs/secrets/local.js
+app/src/configs/secrets/prod.js
+docker-compose.yml
+.env
