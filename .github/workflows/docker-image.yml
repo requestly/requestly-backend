@@ -1,0 +1,28 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build-and-push:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: docker login
+      env:
+        DOCKER_USER: ${{secrets.DOCKER_USER}}
+        DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+      run: |
+        docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+    
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag requestly/private-images:backend-prod-latest --build-arg PORT=5555 --build-arg ENV=PROD
+    
+    - name: Docker Push
+      run: docker push requestly/private-images:backend-prod-latest
