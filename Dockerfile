@@ -11,6 +11,6 @@ ENV NODE_ENV "PRODUCTION"
 WORKDIR /usr/src/app
 COPY ./app/ .
 RUN cp -r /usr/src/secrets ./src/configs
-EXPOSE 6969
+EXPOSE ${PORT}
 RUN npm install
 ENTRYPOINT npm start
