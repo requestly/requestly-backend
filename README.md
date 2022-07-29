@@ -1,4 +1,5 @@
-### rq-interceptor-backend
+## Requestly Backed
 
-Server to proxy requests from requestly clients
-- rq-interceptor-android-sdk
+To test locally, create the required `.env` files and run
+
+`docker compose --env-file ./app.env up --build`

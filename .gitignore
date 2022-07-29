@@ -4,5 +4,4 @@ app/src/configs/secrets/*ServiceAccountKey.json
 app/src/configs/secrets/beta.js
 app/src/configs/secrets/local.js
 app/src/configs/secrets/prod.js
-docker-compose.yml
-.env
+*.env

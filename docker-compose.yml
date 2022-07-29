@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      args:
+        # In case environment files are not found
+        - ENV=BETA
+        - PORT=5555
+    ports:
+      - ${APP_SERVICE_PORT}:${APP_SERVICE_PORT}
+    env_file: ./app.env
+    depends_on:
+      - redis
+  redis:
+    container_name: ${REDIS_SERVICE_NAME}
+    image: "redis:alpine"
+    ports:
+      - '6379:6379'

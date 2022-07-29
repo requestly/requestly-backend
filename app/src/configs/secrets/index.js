@@ -4,8 +4,6 @@ const ENVS = {
     LOCAL: "LOCAL",
 }
 
-console.log(process.env.ENV);
-
 let secrets;
 
 // TODO: Use templating instead of separate files
@@ -18,10 +16,9 @@ switch(process.env.ENV) {
         break;
     case ENVS.LOCAL:
         secrets = require("./local");
-        // console.log(secrets);
         break;
     default:
-        secrets = require("./local");
+        secrets = require("./beta");
         break;
 }
 
