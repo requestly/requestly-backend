@@ -1,7 +1,8 @@
 import express from "express";
+import { getResponseFromHarRequest } from "./utils/passThrough.js";
+import { sendEventToFirestore } from "./utils/firebase/firestoreActions.js";
 
 import { PORT, SDK_ID_HEADER_KEY, DEVICE_ID_HEADER_KEY } from "./constants/index.js";
-import { getResponseFromHarRequest } from "./utils/passThrough.js";
 
 import initSdkDevice from "./services/interceptor/init-device.js";
 import * as ProxyStartup from "./startup/proxy";
@@ -24,7 +25,6 @@ app.post('/proxyRequest', async (req, res) => {
     res.status(400).send(`Request body is incorrect`)
   } else {
     await getResponseFromHarRequest(harObject, deviceId, sdkId).then((response) => {
-      // console.log("returning", response)
       res.status(response.status)
       res.header(response.headers)
       res.send(response.data)
@@ -32,6 +32,40 @@ app.post('/proxyRequest', async (req, res) => {
       console.error("Unexpected Error - ", error)
       res.status(500).send(`Hmm, this was an unexpected crash. Please report this issue`)
     })
+  }
+})
+
+app.post('/events', async (req, res) => {
+  let sdkId = req.headers[SDK_ID_HEADER_KEY]
+  let deviceId = req.headers[DEVICE_ID_HEADER_KEY]
+  
+  if(!sdkId || !deviceId) {
+    res.status(400).send(`${SDK_ID_HEADER_KEY} and ${DEVICE_ID_HEADER_KEY} headers are must`)
+  } else if (
+    !Object.keys(req.body).length || 
+    !req.body.eventName || 
+    !req.body.eventData || 
+    !req.body.documentId
+  ) { 
+    res.status(400).send(`Request body is incorrect`)
+  } else {
+
+    let result = {
+      success: true,
+      message: ""
+    }
+
+    sendEventToFirestore(sdkId, deviceId, req.body)
+    .then(() => {
+      res.status(200)
+    }).catch(err => {
+      result = {
+        success: false,
+        message: err.toString()
+      }
+      res.status(500)
+    })
+    res.send(result)
   }
 })
 
