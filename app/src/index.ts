@@ -40,12 +40,12 @@ app.post('/events', async (req, res) => {
   let deviceId = req.headers[DEVICE_ID_HEADER_KEY]
   
   if(!sdkId || !deviceId) {
-    res.status(400).send(`${SDK_ID_HEADER_KEY} and ${DEVICE_ID_HEADER_KEY} headers are must`)
+    res.status(401).send(`${SDK_ID_HEADER_KEY} and ${DEVICE_ID_HEADER_KEY} headers are must`)
   } else if (
     !Object.keys(req.body).length || 
     !req.body.eventName || 
     !req.body.eventData || 
-    !req.body.documentId
+    !req.body.rowId
   ) { 
     res.status(400).send(`Request body is incorrect`)
   } else {
