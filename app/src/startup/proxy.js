@@ -1,5 +1,5 @@
 import axios from "axios";
-import  { RQProxyProvider } from "rq-proxy";
+import  { RQProxyProvider } from "@requestly/requestly-proxy";
 import { CERT_PATH, DEVICE_ID_HEADER_KEY, PROXY_PORT, ROOT_CERT_PATH, SDK_ID_HEADER_KEY } from "../constants/index.js";
 import RulesDataSource from "./ruleFetcher.js";
 import { RQ_FIREBASE_BASE_URL } from "../configs/secrets";
