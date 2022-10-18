@@ -6,6 +6,8 @@ import { PORT, SDK_ID_HEADER_KEY, DEVICE_ID_HEADER_KEY } from "./constants/index
 
 import initSdkDevice from "./services/interceptor/init-device.js";
 import * as ProxyStartup from "./startup/proxy";
+import axios from "axios";
+import redisClient from "./clients/redis.js";
 
 ProxyStartup.initProxy()
 
@@ -67,6 +69,39 @@ app.post('/events', async (req, res) => {
     })
     res.send(result)
   }
+})
+
+app.get('/androidSdk/latestVersion', async (req, res) => {
+  const updateDetails = {
+    "versionName": null, // "2.3.0"
+    "versionCode": null, // 2*100*100 + 3*100 + 0 = 20300
+    "displayText": "A new version of SDK is available",
+    "ctaText": "Check Now",
+    "redirectUrl": "https://github.com/requestly/requestly-android-sdk/releases"
+  }
+
+  try {
+    const REDIS_KEY = "ANDROID_SDK_LATEST_VERSION";
+    let latestVersionName = await redisClient.get(`${REDIS_KEY}`);
+
+    // FETCH FROM GITHUB RELEASES
+    if(!latestVersionName) {
+      console.log("Fetching Android SDK latest version from Github Releases");
+      const resp = await axios.get("https://api.github.com/repos/requestly/requestly-android-sdk/releases/latest")
+      const latestVersionDetails = resp.data
+      latestVersionName = latestVersionDetails && latestVersionDetails["tag_name"] && latestVersionDetails["tag_name"].slice(1)
+      redisClient.set(`${REDIS_KEY}`, latestVersionName, {'EX': 86400}); // 1 day expiry
+    } else {
+      console.log("Fetched latest version from Redis");
+    }
+
+    updateDetails.versionName = latestVersionName;
+    updateDetails.versionCode = latestVersionName.split('.').map((val) => parseInt(val)).reduce((prev, curr) => { return prev*100 + curr }, 0);
+  } catch(err) {
+    console.log("Error while fetching latest sdk version", err)
+  }
+
+  return res.status(200).json(updateDetails);
 })
 
 app.get('/initSdkDevice', async (req, res) => {
