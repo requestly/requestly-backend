@@ -34,12 +34,15 @@ const addDeviceDetail = async (
       await firestoreDb
         .collection("sdks")
         .doc(sdkId)
-        .update({
+        .set(
+          {
           devices: FieldValue.arrayUnion(deviceDetail),
           enabled_device_ids: captureEnabled
             ? FieldValue.arrayUnion(deviceId)
             : FieldValue.arrayRemove(deviceId),
-        });
+          },
+          { merge: true },
+        );
       await firestoreDb
         .collection("sdks")
         .doc(sdkId)
