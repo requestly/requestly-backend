@@ -123,8 +123,11 @@ app.get('/initSdkDevice', async (req, res) => {
     const captureEnabled = headers["capture_enabled"] === "true";
 
     let initDeviceId = null;
+    let isAnonymousSession = true;
     try {
-      initDeviceId = await initSdkDevice(sdkId, deviceId, captureEnabled, deviceDetails);
+      const initDetails = await initSdkDevice(sdkId, deviceId, captureEnabled, deviceDetails);
+      initDeviceId = initDetails?.deviceId;
+      isAnonymousSession = initDetails?.isAnonymousSession
     } catch (err) {
       return res.status(400).json({
         status: false,
@@ -136,12 +139,14 @@ app.get('/initSdkDevice', async (req, res) => {
       return res.status(201).json({
         success: true,
         "device-id": initDeviceId,
+        "is_anonymous_session": isAnonymousSession,
       })
     }
     
     return res.status(200).json({
       success: true,
       "device-id": initDeviceId,
+      "is_anonymous_session": isAnonymousSession,
     })
 })
 

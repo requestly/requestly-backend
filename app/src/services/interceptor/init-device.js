@@ -8,14 +8,17 @@ const initSdkDevice = async (sdkId, deviceId, captureEnabled = true, deviceDetai
         deviceId = generateNewDeviceId();
     }
 
-    await addDeviceDetail(
+    const isAnonymousSession = await addDeviceDetail(
         sdkId,
         deviceId,
         captureEnabled,
         deviceDetails,
     );
 
-    return deviceId;
+    return {
+      deviceId,
+      isAnonymousSession,
+    };
 }
 
 const addDeviceDetail = async (
@@ -24,14 +27,17 @@ const addDeviceDetail = async (
     captureEnabled = true,
     deviceDetails = {},
   ) => {
+    let isAnonymousSession = true;
     try {
       const deviceDetail = {
         id: deviceId,
         model: deviceDetails["model"] || null,
         name: deviceDetails["name"] || null,
       };
-  
-      await firestoreDb
+
+      // anonymous-xyz123
+      if(sdkId.indexOf("anonymous-") == 0) {
+        await firestoreDb
         .collection("sdks")
         .doc(sdkId)
         .set(
@@ -43,12 +49,28 @@ const addDeviceDetail = async (
           },
           { merge: true },
         );
+        isAnonymousSession = true;
+      } else {
+        await firestoreDb
+        .collection("sdks")
+        .doc(sdkId)
+        .update({
+          devices: FieldValue.arrayUnion(deviceDetail),
+          enabled_device_ids: captureEnabled
+            ? FieldValue.arrayUnion(deviceId)
+            : FieldValue.arrayRemove(deviceId),
+        });
+        isAnonymousSession = false;
+      }
+      
       await firestoreDb
         .collection("sdks")
         .doc(sdkId)
         .collection("devices")
         .doc(deviceId)
         .set({}, { merge: true });
+
+      return isAnonymousSession;
     } catch (err) {
       console.log(err);
       throw Error("Error while initializing device");
