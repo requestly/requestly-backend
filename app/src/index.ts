@@ -116,6 +116,7 @@ app.get('/initSdkDevice', async (req, res) => {
 
     const sdkId = headers["sdk_id"];
     const deviceId = headers["device_id"];
+    const sdkVersion = headers["sdk_version"] as string;
     const deviceDetails = {
       model: headers["device_model"] || null,
       name: headers["device_name"] || null,
@@ -125,7 +126,7 @@ app.get('/initSdkDevice', async (req, res) => {
     let initDeviceId = null;
     let isAnonymousSession = true;
     try {
-      const initDetails = await initSdkDevice(sdkId, deviceId, captureEnabled, deviceDetails);
+      const initDetails = await initSdkDevice(sdkId, deviceId, captureEnabled, deviceDetails, sdkVersion);
       initDeviceId = initDetails?.deviceId;
       isAnonymousSession = initDetails?.isAnonymousSession
     } catch (err) {

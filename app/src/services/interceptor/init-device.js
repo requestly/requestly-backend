@@ -3,7 +3,7 @@ import { uniqueNamesGenerator, adjectives, colors, animals } from "unique-names-
 
 import { firestoreDb } from "../../clients/firebase.js";
 
-const initSdkDevice = async (sdkId, deviceId, captureEnabled = true, deviceDetails = {}) => {
+const initSdkDevice = async (sdkId, deviceId, captureEnabled = true, deviceDetails = {}, sdkVersion = "") => {
     if(!deviceId) {
         deviceId = generateNewDeviceId();
     }
@@ -13,6 +13,7 @@ const initSdkDevice = async (sdkId, deviceId, captureEnabled = true, deviceDetai
         deviceId,
         captureEnabled,
         deviceDetails,
+        sdkVersion,
     );
 
     return {
@@ -26,6 +27,7 @@ const addDeviceDetail = async (
     deviceId,
     captureEnabled = true,
     deviceDetails = {},
+    sdkVersion = "",
   ) => {
     let isAnonymousSession = true;
     try {
@@ -68,7 +70,10 @@ const addDeviceDetail = async (
         .doc(sdkId)
         .collection("devices")
         .doc(deviceId)
-        .set({}, { merge: true });
+        .set({
+          lastActivityTimestamp: Date.now(),
+          sdkVersion: sdkVersion,
+        }, { merge: true });
 
       return isAnonymousSession;
     } catch (err) {
