@@ -5,7 +5,7 @@ ARG ENV
 
 ENV PORT ${PORT}
 ENV ENV ${ENV}
-ENV CERT_PATH "/usr/src/certfiles2"
+ENV CERT_PATH "/usr/src/certfiles"
 ENV NODE_ENV "PRODUCTION"
 
 WORKDIR /usr/src/app
