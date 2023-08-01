@@ -1,4 +1,4 @@
-## Requestly Backed
+## Requestly Backed.
 
 To test locally, create the required `.env` files and run
 
