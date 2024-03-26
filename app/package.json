@@ -21,7 +21,7 @@
   "homepage": "https://github.com/requestly/rq-interceptor-backend#readme",
   "dependencies": {
     "axios": "^0.26.1",
-    "express": "^4.17.3",
+    "express": "^4.19.2",
     "firebase-admin": "^10.0.2",
     "https-proxy-agent": "^5.0.0",
     "redis": "^4.0.6",
